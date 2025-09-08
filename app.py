@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
+import streamlit as st
 
 # Load the data
 movies = pd.read_csv('movies.csv')
@@ -20,7 +21,7 @@ def recommend(movie_title, top_n=5):
     # Find movie ID
     movie_id = movies[movies['title'].str.lower() == movie_title.lower()]["movieId"].values
     if len(movie_id) == 0:
-        return "Movie not found"
+        return []
     movie_id = movie_id[0]
 
     # Get similarity scores
@@ -30,17 +31,11 @@ def recommend(movie_title, top_n=5):
     top_movies_ids = sim_scores.iloc[1:top_n+1].index
     top_movies = movies[movies["movieId"].isin(top_movies_ids)]["title"].tolist()
 
-    # Print results
-    print(f"\n🎬 Top {top_n} recommendations for '{movie_title}':")
-    for i, m in enumerate(top_movies, start=1):
-        print(f"{i}. {m}")
+    return top_movies
 
-# Run from user input
-if __name__ == "__main__":
-    movie_input = input("Enter a movie name: ")
-    recommend(movie_input)
-# streamlit app 
-import streamlit as st 
+# -------------------------------
+# Streamlit UI
+# -------------------------------
 st.title("🎬 Movie Recommender System")
 
 movie_list = movies['title'].values
@@ -49,7 +44,7 @@ selected_movie = st.selectbox("Choose a movie:", movie_list)
 if st.button("Get Recommendations"):
     recommendations = recommend(selected_movie)
     if recommendations:
-        st.subheader("✨ Recommended Movies:")
+        st.subheader(f"✨ Top Recommendations for '{selected_movie}':")
         for i, rec in enumerate(recommendations, start=1):
             st.write(f"{i}. {rec}")
     else:
